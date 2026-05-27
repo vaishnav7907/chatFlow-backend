@@ -48,10 +48,12 @@ const signIn = async (req, res) => {
 
     const token = jwtoken.sign(
       { id: emailexistt._id },
-      process.env.JWT_SECRETE_CODE,
+      process.env.JWT_SECRET,
       { expiresIn: "1h" },
     );
-
+    
+  console.log("SIGN SECRET:", process.env.JWT_SECRET);
+  
     res.json({ token });
   } catch (error) {
     console.log("LOGIN ERROR:", error);

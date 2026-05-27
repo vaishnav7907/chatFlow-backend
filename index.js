@@ -1,20 +1,28 @@
 const express = require("express")
 const dotenv= require("dotenv")
+
 const connection =require("./mongodb/config") 
+dotenv.config()
 const app = express()
 const { Server } = require('socket.io')
-
+const cors = require("cors");
 const http= require("http")
 
 const server = http.createServer(app)
 
-const router  = require("./router/beatflowRouter")
+const router  = require("./router/chatflowRouter")
 const setupchat = require("./socket/socketio")
 
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    
+  })
+);
 
 const io = new Server(server,{
     cors:{
-        origin:"*",
+        origin:"http://localhost:5173",
         methods:["GET","POST"]
     }
 })
@@ -25,7 +33,7 @@ const io = new Server(server,{
 setupchat(io)
 
 
-dotenv.config()
+
 connection()
 
 app.use(express.json())
