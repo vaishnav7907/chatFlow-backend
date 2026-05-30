@@ -41,12 +41,19 @@
 
 
 // personal message
+const onlineusers = new Map()
 
 const setupchat=(io)=>{
 
 
   io.on("connection",(socket)=>{
 
+console.log("a user connected:",socket.id);
+
+socket.on("disconnected",()=>{
+  console.log("a user disconnected",socket.id);
+  
+})
 
 
 
