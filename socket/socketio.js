@@ -43,10 +43,23 @@ const onlineusers = new Map();
 const setupchat = (io) => {
   io.on("connection", (socket) => {
     console.log("a user connected:", socket.id);
-    const myId = req.user.id;
-    socket.on("join_room", () => {
-      socket.join(myId);
-      console.log("a user disconnected", socket.id);
+
+    socket.on("join_room", (userId) => {
+      socket.join(userId);
+
+      socket.userId = userId;
+      onlineusers.set(userId, socket.id);
+      console.log(`${userId} is joined`);
+      console.log("online users:", onlineusers);
+    });
+
+    socket.on("disconnect", () => {
+      if (socket.userId) {
+        onlineusers.delete(socket.userId);
+      }
+
+      console.log("user disconnected", socket.id);
+      console.log("online users", onlineusers);
     });
   });
 };
