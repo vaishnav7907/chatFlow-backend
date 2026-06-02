@@ -37,30 +37,18 @@
 //   });
 // };
 
-
-
-
 // personal message
-const onlineusers = new Map()
+const onlineusers = new Map();
 
-const setupchat=(io)=>{
-
-
-  io.on("connection",(socket)=>{
-
-console.log("a user connected:",socket.id);
-
-socket.on("disconnected",()=>{
-  console.log("a user disconnected",socket.id);
-  
-})
-
-
-
-
-    
-  })
-
-}
+const setupchat = (io) => {
+  io.on("connection", (socket) => {
+    console.log("a user connected:", socket.id);
+    const myId = req.user.id;
+    socket.on("join_room", () => {
+      socket.join(myId);
+      console.log("a user disconnected", socket.id);
+    });
+  });
+};
 
 module.exports = setupchat;
