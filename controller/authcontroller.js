@@ -54,7 +54,15 @@ const signIn = async (req, res) => {
     
   console.log("SIGN SECRET:", process.env.JWT_SECRET);
   
-    res.json({ token });
+     res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        id: emailexistt.id,
+        Email: emailexistt.Email,
+        Password:emailexistt.Password
+      },
+    });
   } catch (error) {
     console.log("LOGIN ERROR:", error);
     res.status(500).json({ message: error });
