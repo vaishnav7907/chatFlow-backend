@@ -53,6 +53,14 @@ const setupchat = (io) => {
       console.log("online users:", onlineusers);
     });
 
+    socket.on("send_message", (data) => {
+      console.log("this is send message", data);
+      io.to(data.receiverid).emit("recieve_message", {
+        senderid: socket.userId,
+        text: data.text,
+      });
+    });
+
     socket.on("disconnect", () => {
       if (socket.userId) {
         onlineusers.delete(socket.userId);
