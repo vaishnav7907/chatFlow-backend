@@ -53,6 +53,7 @@ const setupchat = (io) => {
       console.log("online users:", onlineusers);
     });
 
+    
     socket.on("send_message", (data) => {
       console.log("this is send message", data);
       io.to(data.receiverid).emit("recieve_message", {
