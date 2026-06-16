@@ -1,32 +1,28 @@
 const usermodel = require("../model/authentication");
 const bcrypt = require("bcrypt");
-const jwtoken = require("jsonwebtoken");
-
-
-
+const jwt = require("jsonwebtoken");
 
 const signup = async (req, res) => {
   try {
     const { Email, Username, Password } = req.body;
 
-    const isemailExist = await usermodel.findOne({ Email });
-
-    if (isemailExist) {
-      return res.status(409).json({ message: " already exist" });
+    const exists = await usermodel.findOne({ Email });
+    if (exists) {
+      return res.status(409).json({ message: "already exist" });
     }
 
-    const hashedpassword = await bcrypt.hash(Password, 10);
+    
+    const hashed = await bcrypt.hash(Password, 10);
 
-    const createuser = await usermodel.create({
+    const user = await usermodel.create({
       Email,
       Username,
-      Password: hashedpassword,
+      Password: hashed,
     });
 
-    res.json({ message: "signup successfull", data: createuser });
+    res.status(201).json({ message: "signup success", data: user });
   } catch (error) {
-    console.log("signup error", error);
-    res.status(500).json({ message: error });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -34,39 +30,56 @@ const signIn = async (req, res) => {
   try {
     const { Email, Password } = req.body;
 
-    const emailexistt = await usermodel.findOne({ Email });
+    const user = await usermodel.findOne({ Email });
 
-    if (!emailexistt) {
-      return res.json({ message: " Invalid Email " });
+    if (!user) {
+      return res.status(400).json({ message: "invalid email" });
     }
 
-    const passexist = await bcrypt.compare(Password, emailexistt.Password);
+    const match = await bcrypt.compare(Password, user.Password);
 
-    if (!passexist) {
-      return res.json({ message: " Invalid Password " });
+    if (!match) {
+      return res.status(400).json({ message: "invalid password" });
     }
 
-    const token = jwtoken.sign(
-      { id: emailexistt._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" },
-    );
-    
-  console.log("SIGN SECRET:", process.env.JWT_SECRET);
-  
-     res.status(200).json({
-      message: "Login successful",
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    res.status(200).json({
+      message: "login success",
       token,
       user: {
-        id: emailexistt.id,
-        Email: emailexistt.Email,
-        Password:emailexistt.Password
+        id: user._id,
+        Email: user.Email,
+        Username: user.Username,
       },
     });
   } catch (error) {
-    console.log("LOGIN ERROR:", error);
-    res.status(500).json({ message: error });
+    res.status(500).json({ message: error.message });
   }
 };
 
-module.exports = { signup , signIn };
+const dltcontact = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deleted = await usermodel.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return res.status(404).json({ message: "contact not found" });
+    }
+
+    res.status(200).json({
+      message: "contact deleted successfully",
+      data: deleted,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+
+module.exports = { signup, signIn, dltcontact };

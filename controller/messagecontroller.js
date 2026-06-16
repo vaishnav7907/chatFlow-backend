@@ -2,7 +2,9 @@ const usermodel = require("../model/authentication");
 const messagemodel = require("../model/chatmodel");
 const getallusers = async (req, res) => {
   try {
-    const loggedInUserid = req.user._id;
+    console.log("req user:",req.user);
+    console.log("REQ USER ID:", req.user?.id);
+    const loggedInUserid = req.user.id;
     const filteruser = await usermodel
       .find({ _id: { $ne: loggedInUserid } })
       .select("-Password");
@@ -14,18 +16,20 @@ const getallusers = async (req, res) => {
   }
 };
 
+
 const getMessages = async (req, res) => {
   try {
-    const { id: userChatId } = req.params;
+    const { id: selecteduserid } = req.params;
     const myId = req.user.id;
     const messages = await messagemodel
       .find({
         $or: [
-          { senderid: myId, recieverid: userChatId },
-          { senderid: userChatId, recieverid: myId },
+          { senderid: myId, recieverid: selecteduserid },
+          { senderid: selecteduserid, recieverid: myId },
         ],
       })
-      .sort({ createdAt: 1 });
+      
+      await messagemodel.updateMany({senderid:selecteduserid,recieverid:myId},{seen:true})
 
     res.status(200).json(messages);
   } catch (error) {
@@ -35,26 +39,26 @@ const getMessages = async (req, res) => {
   }
 };
 
-const sendMessages = async (req, res) => {
-  try {
-    const { text, image } = req.body;
-    const { id: recieverid } = req.params;
-    const senderid = req.user.id;
-    console.log("senderid:", senderid);
+// const sendMessages = async (req, res) => {
+//   try {
+//     const { text, image } = req.body;
+//     const  recieverid  = req.params.id
+//     const senderid = req.user.id;
+//     console.log("senderid:", senderid);
 
-    const newMessages = new messagemodel({
-      senderid,
-      recieverid,
-      text,
-      image,
-    });
+//     const newMessages = await messagemodel.create({
+//       senderid,
+//       recieverid,
+//       text,
+//       image,
+//     });
 
-    await newMessages.save();
-    res.status(201).json(newMessages);
-  } catch (error) {
-    console.log(" error in send message :", error);
-    res.status(500).json({ error: "iinternal server error" });
-  }
-};
+//     await newMessages.save();
+//     res.status(201).json(newMessages);
+//   } catch (error) {
+//     console.log(" error in send message :", error);
+//     res.status(500).json({ error: "iinternal server error" });
+//   }
+// };
 
-module.exports = { getallusers, getMessages, sendMessages };
+module.exports = { getallusers, getMessages,  };

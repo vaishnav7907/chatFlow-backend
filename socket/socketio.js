@@ -38,37 +38,59 @@
 // };
 
 // personal message
-const onlineusers = new Map();
 
+const msgmodel = require("../model/chatmodel");
+const onlineusers = new Map();
 const setupchat = (io) => {
   io.on("connection", (socket) => {
-    console.log("a user connected:", socket.id);
+    console.log("connected:", socket.id);
 
-    socket.on("join_room", (userId) => {
-      socket.join(userId);
-
-      socket.userId = userId;
+    socket.on("join", (userId) => {
       onlineusers.set(userId, socket.id);
-      console.log(`${userId} is joined`);
-      console.log("online users:", onlineusers);
+
+      console.log("online users", [...onlineusers.entries()]);
     });
 
-    
-    socket.on("send_message", (data) => {
-      console.log("this is send message", data);
-      io.to(data.receiverid).emit("recieve_message", {
-        senderid: socket.userId,
-        text: data.text,
-      });
+    socket.on("sendmessage", async (data) => {
+      const { senderid, recieverid, text } = data;
+
+      if (!recieverid || !text?.trim()) return;
+
+      try {
+        const savemessage = await msgmodel.create({
+          senderid,
+          recieverid,
+          text,
+        });
+
+        // send to sender
+        socket.emit("recievemessage", savemessage);
+
+        //send to reciever
+
+        const recieverSocketId = onlineusers.get(recieverid);
+
+        if (recieverSocketId) {
+          io.to(recieverSocketId).emit("recievemessage", savemessage);
+        }
+      } catch (error) {
+        console.log("send message error", error);
+        socket.emit("messageError", {
+          message: "failed to send message. please try again",
+        });
+      }
     });
 
     socket.on("disconnect", () => {
-      if (socket.userId) {
-        onlineusers.delete(socket.userId);
+      for (const [userId, socketId] of onlineusers.entries()) {
+        if (socketId === socket.id) {
+          onlineusers.delete(userId);
+          break;
+        }
       }
 
-      console.log("user disconnected", socket.id);
-      console.log("online users", onlineusers);
+      console.log("Disconnected:", socket.id);
+      console.log("online users", [...onlineusers.entries()]);
     });
   });
 };
