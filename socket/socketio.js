@@ -40,6 +40,8 @@
 // personal message
 
 const msgmodel = require("../model/chatmodel");
+const groupmodel = require("../model/groupschema");
+const groupchatmodel = require("../model/groupChatSchema");
 const onlineusers = new Map();
 const setupchat = (io) => {
   io.on("connection", (socket) => {
@@ -77,6 +79,56 @@ const setupchat = (io) => {
         console.log("send message error", error);
         socket.emit("messageError", {
           message: "failed to send message. please try again",
+        });
+      }
+    });
+
+    //group chat ..................
+
+    socket.on("joingroup", (groupId) => {
+      socket.join(groupId);
+      console.log(`Socket ${socket.id} joined group ${groupId}`);
+    });
+
+    socket.on("sendGroupMsg", async (sendData) => {
+      const { groupid, senderid, text } = sendData;
+
+      if (!groupid || !text.trim()) return;
+
+      try {
+        //checking group exist
+        // const group = await groupmodel.findOne({_id:groupid});
+
+        // if (!group) {
+        //   return socket.emit("messageError", {
+        //     message: "group not found",
+        //   });
+        // }
+
+        // checking member exist
+
+        const groupMember = await groupmodel.findOne({
+          _id: groupid,
+          members: senderid,
+        });
+        if (!groupMember) {
+          return socket.emit("messageerror", {
+            message: "You are not a member of this group",
+          });
+        }
+        //save message
+        const groupmessage = await groupchatmodel.create({
+          groupid,
+          senderid,
+          text,
+        });
+
+        //send to all group members
+        io.to(groupid).emit("recieveGroupMsg", groupmessage);
+      } catch (error) {
+        console.log("group message error:", error);
+        socket.emit("messageError", {
+          message: "Failed to send group message",
         });
       }
     });

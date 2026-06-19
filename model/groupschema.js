@@ -10,7 +10,7 @@ const group= new mongoose.Schema({
         ref:"authentication_Model"
     }
 },{
-    timestamps:"true"
+    timestamps:true
 })
 
 
