@@ -1,6 +1,7 @@
 const usermodel = require("../model/authentication");
 const messagemodel = require("../model/chatmodel");
 const groupmodel = require("../model/groupschema");
+const groupChatModel = require("../model/groupChatSchema");
 
 const getallusers = async (req, res) => {
   try {
@@ -92,4 +93,50 @@ const getallgrps = async (req, res) => {
   }
 };
 
-module.exports = { getallusers, getMessages, creategroup , getallgrps };
+const getgroupMsgs = async (req, res) => {
+  try {
+    const { groupid } = req.params;
+    const grpchat = await groupChatModel
+      .find({ groupid: groupid })
+      .populate("senderid", "Username")
+      .sort({ createdAt: 1 });
+    res.status(200).json(grpchat);
+  } catch (error) {
+    console.log(" error in grp message", error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+// add members to group
+
+const addMembersToGroup = async (req, res) => {
+  try {
+    const { groupid, userid } = req.body;
+    const groupexist = await groupmodel.findById(groupid);
+
+    if (!groupexist) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+
+    if (groupexist.members.includes(userid)) {
+      return res.status(400).json({ message: "Already in group" });
+    }
+
+    groupexist.members.push(userid);
+    await groupexist.save();
+    res.status(200).json(groupexist);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = {
+  getallusers,
+  getMessages,
+  creategroup,
+  getallgrps,
+  getgroupMsgs,
+  addMembersToGroup
+};

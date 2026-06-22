@@ -96,17 +96,6 @@ const setupchat = (io) => {
       if (!groupid || !text.trim()) return;
 
       try {
-        //checking group exist
-        // const group = await groupmodel.findOne({_id:groupid});
-
-        // if (!group) {
-        //   return socket.emit("messageError", {
-        //     message: "group not found",
-        //   });
-        // }
-
-        // checking member exist
-
         const groupMember = await groupmodel.findOne({
           _id: groupid,
           members: senderid,
@@ -123,8 +112,13 @@ const setupchat = (io) => {
           text,
         });
 
+        //populate sender
+        const populatemsg = await groupchatmodel
+          .findById(groupmessage._id)
+          .populate("senderid", "Username");
+
         //send to all group members
-        io.to(groupid).emit("recieveGroupMsg", groupmessage);
+        io.to(groupid).emit("recieveGroupMsg", populatemsg);
       } catch (error) {
         console.log("group message error:", error);
         socket.emit("messageError", {

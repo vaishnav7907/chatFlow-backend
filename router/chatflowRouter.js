@@ -1,6 +1,6 @@
 const express = require("express")
 const { signup, signIn, dltcontact } = require("../controller/authcontroller")
-const { getallusers,  getMessages, creategroup, getallgrps } = require("../controller/messagecontroller")
+const { getallusers,  getMessages, creategroup, getallgrps, getgroupMsgs, addMembersToGroup } = require("../controller/messagecontroller")
 const settingMidleware = require("../middleware/middleware")
 
 const router = express.Router()
@@ -26,5 +26,10 @@ router.post("/creategroup",creategroup)
 
 router.get("/getgroup",getallgrps)
 
+//get group messages
+router.get("/getgroupmessages/:groupid",getgroupMsgs)
+
+//post add members in group
+router.post("/addMembersToGroup",addMembersToGroup)
 
 module.exports=router
