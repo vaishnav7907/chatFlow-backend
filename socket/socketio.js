@@ -85,15 +85,15 @@ const setupchat = (io) => {
 
     //group chat ..................
 
-    socket.on("joingroup", (groupId) => {
-      socket.join(groupId);
-      console.log(`Socket ${socket.id} joined group ${groupId}`);
+    socket.on("joingroup", (groupid) => {
+      socket.join(groupid);
+      console.log(`Socket ${socket.id} joined group ${groupid}`);
     });
 
     socket.on("sendGroupMsg", async (sendData) => {
       const { groupid, senderid, text } = sendData;
 
-      if (!groupid || !text.trim()) return;
+      if (!groupid || !senderid|| !text?.trim()) return;
 
       try {
         const groupMember = await groupmodel.findOne({
@@ -117,7 +117,7 @@ const setupchat = (io) => {
           .findById(groupmessage._id)
           .populate("senderid", "Username");
 
-        //send to all group members
+        //send to all group members 
         io.to(groupid).emit("recieveGroupMsg", populatemsg);
       } catch (error) {
         console.log("group message error:", error);

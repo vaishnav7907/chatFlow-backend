@@ -11,7 +11,10 @@ const signup = async (req, res) => {
       return res.status(409).json({ message: "already exist" });
     }
 
-    
+    const usernameExist = await usermodel.findOne({ Username });
+    if (usernameExist) {
+      return res.status(409).json({ message: "username already exist" });
+    }
     const hashed = await bcrypt.hash(Password, 10);
 
     const user = await usermodel.create({
@@ -82,4 +85,21 @@ const dltcontact = async (req, res) => {
   }
 };
 
-module.exports = { signup, signIn, dltcontact };
+const searchUser = async (req,res) => {
+  try {
+    const search = req.query.search?.trim();
+    const allusers = await usermodel.find({
+      Username: {
+        $regex: search,
+        $options: "i",
+      },
+    });
+
+    res.status(200).json(allusers);
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+module.exports = { signup, signIn, dltcontact, searchUser };

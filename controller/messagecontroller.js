@@ -69,7 +69,11 @@ const getMessages = async (req, res) => {
 const creategroup = async (req, res) => {
   try {
     const { groupname, members, admin } = req.body;
-    const group = await groupmodel.create({ groupname, members, admin });
+    const group = await groupmodel.create({
+      groupname,
+      members: [...members, admin],
+      admin,
+    });
     res.status(201).json(group);
   } catch (error) {
     console.log("creating group error", error);
@@ -132,11 +136,53 @@ const addMembersToGroup = async (req, res) => {
   }
 };
 
+const getGroupMembers = async (req, res) => {
+  const { groupname } = req.query;
+  try {
+    const groupexist = await groupmodel
+      .findOne({ groupname })
+      .populate("members", "Username _id");
+    if (!groupexist) {
+      return res.json({ message: "group doesn't exist" });
+    }
+
+    console.log("group members", groupexist.members);
+
+    res.status(200).json({
+      members: groupexist.members,
+    });
+  } catch (error) {
+    console.log("error in get all members of a group", error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+const dltGroup = async (req, res) => {
+  const { groupid } = req.params;
+
+  try {
+    // if (!groupid) {
+    //   return
+    // }
+    const groupremove = await groupmodel.findByIdAndDelete(groupid);
+    if (!groupremove) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+    res.status(200).json({ message: "group deleted" });
+  } catch (error) {
+    console.log("error in deletion of group", error);
+  }
+};
+
 module.exports = {
   getallusers,
   getMessages,
   creategroup,
   getallgrps,
   getgroupMsgs,
-  addMembersToGroup
+  addMembersToGroup,
+  getGroupMembers,
+  dltGroup
 };
