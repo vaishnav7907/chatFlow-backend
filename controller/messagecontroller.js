@@ -138,7 +138,12 @@ const addMembersToGroup = async (req, res) => {
 
 const getGroupMembers = async (req, res) => {
   const { groupname } = req.query;
+  // const {admin}=red.body
   try {
+
+    // if(!admin){
+    //   return res.json(" admin doesn't exist ")
+    // }
     const groupexist = await groupmodel
       .findOne({ groupname })
       .populate("members", "Username _id");
