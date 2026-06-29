@@ -51,6 +51,8 @@ const setupchat = (io) => {
       onlineusers.set(userId, socket.id);
 
       console.log("online users", [...onlineusers.entries()]);
+
+      io.emit("onlineUsers",[...onlineusers.keys()])
     });
 
     socket.on("sendmessage", async (data) => {
@@ -135,6 +137,7 @@ const setupchat = (io) => {
         }
       }
 
+      io.emit("onlineUsers",[...onlineusers.keys()])
       console.log("Disconnected:", socket.id);
       console.log("online users", [...onlineusers.entries()]);
     });

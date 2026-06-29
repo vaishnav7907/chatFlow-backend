@@ -30,10 +30,10 @@ const getMessages = async (req, res) => {
       ],
     });
 
-    await messagemodel.updateMany(
-      { senderid: selecteduserid, recieverid: myId },
-      { seen: true },
-    );
+    // await messagemodel.updateMany(
+    //   { senderid: selecteduserid, recieverid: myId },
+    //   { seen: true },
+    // );
 
     res.status(200).json(messages);
   } catch (error) {
@@ -140,7 +140,6 @@ const getGroupMembers = async (req, res) => {
   const { groupname } = req.query;
   // const {admin}=red.body
   try {
-
     // if(!admin){
     //   return res.json(" admin doesn't exist ")
     // }
@@ -189,5 +188,5 @@ module.exports = {
   getgroupMsgs,
   addMembersToGroup,
   getGroupMembers,
-  dltGroup
+  dltGroup,
 };
