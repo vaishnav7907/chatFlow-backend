@@ -180,6 +180,7 @@ const dltGroup = async (req, res) => {
   }
 };
 
+
 // get all chats
 const getAllChatss = async (req, res) => {
   try {
@@ -221,20 +222,13 @@ const getAllChatss = async (req, res) => {
 
     //get all groupchat
     const myGroups = await groupmodel.find({ members: myId });
-     const groupChats = {};
-    // const groupMessages = await groupChatModel
-    //   .find()
-    //   .populate("groupid", "groupname")
-    //   .sort({ createdAt: -1 });
-
-    //empty object to store latest last one  group message
-   
+    const groupChats = {};
 
     for (const group of myGroups) {
-
-      const lastMsg= await groupChatModel.findOne({groupid:group._id}).sort({ createdAt: -1 })
-      if(!lastMsg) continue
-      
+      const lastMsg = await groupChatModel
+        .findOne({ groupid: group._id })
+        .sort({ createdAt: -1 });
+      if (!lastMsg) continue;
 
       groupChats[group._id] = {
         _id: group._id,
