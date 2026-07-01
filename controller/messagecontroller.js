@@ -180,16 +180,88 @@ const dltGroup = async (req, res) => {
   }
 };
 
+// get all chats
+const getAllChatss = async (req, res) => {
+  try {
+    const myId = req.user.id;
 
+    //get allpersonal messages
 
-// get all chats 
-const getAllChatss=async(req,res)=>{
-try {
-  
-} catch (error) {
-  
-}
-}
+    const personalMessages = await messagemodel
+      .find({
+        $or: [{ senderid: myId }, { recieverid: myId }],
+      })
+      .populate("senderid", "Username")
+      .populate("recieverid", "Username")
+      .sort({ createdAt: -1 }); //newest first
+
+    //object to store one chat per user
+
+    const personalchat = {};
+
+    for (const msg of personalMessages) {
+      //find other persons details
+      const otherUsers =
+        String(msg.senderid._id) === String(myId)
+          ? msg.recieverid
+          : msg.senderid;
+
+      // if this usser already added skip it
+      if (personalchat[otherUsers._id]) continue;
+
+      //store only latest message
+
+      personalchat[otherUsers._id] = {
+        _id: otherUsers._id,
+        Username: otherUsers.Username,
+        lastMessage: msg.text,
+        createdAt: msg.createdAt,
+      };
+    }
+
+    //get all groupchat
+    const myGroups = await groupmodel.find({ members: myId });
+     const groupChats = {};
+    // const groupMessages = await groupChatModel
+    //   .find()
+    //   .populate("groupid", "groupname")
+    //   .sort({ createdAt: -1 });
+
+    //empty object to store latest last one  group message
+   
+
+    for (const group of myGroups) {
+
+      const lastMsg= await groupChatModel.findOne({groupid:group._id}).sort({ createdAt: -1 })
+      if(!lastMsg) continue
+      
+
+      groupChats[group._id] = {
+        _id: group._id,
+        groupname: group.groupname,
+        lastMessage: lastMsg.text,
+        createdAt: lastMsg.createdAt,
+      };
+    }
+
+    //merge personal and group chats
+
+    const mergeAllChats = [
+      ...Object.values(personalchat),
+      ...Object.values(groupChats),
+    ];
+
+    //latest chat first
+    mergeAllChats.sort((a, b) => b.createdAt - a.createdAt);
+
+    res.status(200).json(mergeAllChats);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+};
 
 module.exports = {
   getallusers,
@@ -200,4 +272,5 @@ module.exports = {
   addMembersToGroup,
   getGroupMembers,
   dltGroup,
+  getAllChatss,
 };
