@@ -180,6 +180,17 @@ const dltGroup = async (req, res) => {
   }
 };
 
+
+
+// get all chats 
+const getAllChatss=async(req,res)=>{
+try {
+  
+} catch (error) {
+  
+}
+}
+
 module.exports = {
   getallusers,
   getMessages,
