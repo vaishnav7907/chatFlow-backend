@@ -16,7 +16,10 @@ const {
   dltGroup,
   getAllChatss,
 } = require("../controller/messagecontroller");
+
 const settingMidleware = require("../middleware/middleware");
+const { default: upload } = require("../utility/multer");
+const {uploadProfileImage,getProfileImage} = require("../controller/profileImgController");
 
 const router = express.Router();
 //auth routers
@@ -58,5 +61,13 @@ router.delete("/deleteGroup/:groupid", dltGroup);
 //get both personal and group allchats
 
 router.get("/getallchats", settingMidleware, getAllChatss);
+
+
+// upload profile image to cloudinary
+
+router.post("/uploadprofileimage",  settingMidleware,upload.single("image"),uploadProfileImage)
+
+
+router.get("/getProfileImg",settingMidleware,getProfileImage)
 
 module.exports = router;
