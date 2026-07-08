@@ -42,7 +42,7 @@ const uploadProfileImage = async (req, res) => {
 
 const getProfileImage = async (req, res) => {
   try {
-    const user = await usermodel.findById(req.user.id);
+    const user = await usermodel.findById(req.user.id).select("-Password");
     if (!user) {
       return res
         .status(404)
