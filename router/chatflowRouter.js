@@ -4,6 +4,7 @@ const {
   signIn,
   dltcontact,
   searchUser,
+  updateprofile,
 } = require("../controller/authcontroller");
 const {
   getallusers,
@@ -18,9 +19,9 @@ const {
 } = require("../controller/messagecontroller");
 
 const settingMidleware = require("../middleware/middleware");
-const { default: upload } = require("../utility/multer");
+// const { default: upload } = require("../utility/multer");
 const {uploadProfileImage,getProfileImage} = require("../controller/profileImgController");
-
+const upload = require("../utility/multer");
 const router = express.Router();
 //auth routers
 router.post("/signup", signup);
@@ -65,9 +66,16 @@ router.get("/getallchats", settingMidleware, getAllChatss);
 
 // upload profile image to cloudinary
 
-router.post("/uploadprofileimage",  settingMidleware,upload.single("image"),uploadProfileImage)
+router.put("/uploadprofileimage",  settingMidleware,upload.single("image"),uploadProfileImage)
 
-
+//get profile img
 router.get("/getProfileImg",settingMidleware,getProfileImage)
+
+
+//update profile
+
+router.patch("/updateProfile/:id",settingMidleware,updateprofile)
+
+
 
 module.exports = router;

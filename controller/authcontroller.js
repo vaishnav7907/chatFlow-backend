@@ -85,7 +85,68 @@ const dltcontact = async (req, res) => {
   }
 };
 
-const searchUser = async (req,res) => {
+const updateprofile = async (req, res) => {
+  try {
+    const userid = req.params.id;
+    const { Email, Username } = req.body;
+
+    if (!userid) {
+      return res.json({ message: "user id didnt exist" });
+    }
+
+
+    // checking email is exist 
+    if (Email) {
+      const emailexist = await usermodel.findOne({
+        Email,
+        _id: { $ne: userid },
+      });
+
+      if (emailexist) {
+        return res.status(400).json({
+          message: "Email already exists",
+        });
+      }
+    }
+
+
+    // checking username is exist
+
+
+    
+    if (Username) {
+      const usernameExist = await usermodel.findOne({
+        Username,
+        _id: { $ne: userid },   //  $ne is a mongodb query. here $ne used to comparison   it checks  userid and username in one oject in mongodb. if find all includes in one object responce become username already exist
+      });
+
+      if (usernameExist) {
+        return res.status(400).json({
+          message: "Username already exists",
+        });
+      }
+    }
+
+    //update object . it creates for when we do like await usermodel.findByIdAndUpdate(userid, { Email, Username,},{new:true}); when i update one otherwill be become undefined, exakple i update email , username become undefined. when we use this object when email update otherone cannot be undefined .
+  const updateData={}
+  
+  if(Email)updateData.Email=Email
+  if(Username)updateData.Username=Username
+
+  //update user
+
+  const updateUserInfo= await usermodel.findByIdAndUpdate(userid,updateData,{new:true})
+
+    res.json({ message: " profile updated successfully ", data: updateUserInfo });
+  } catch (error) {
+    console.log("error in update profile", error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+const searchUser = async (req, res) => {
   try {
     const search = req.query.search?.trim();
     const allusers = await usermodel.find({
@@ -102,4 +163,4 @@ const searchUser = async (req,res) => {
     });
   }
 };
-module.exports = { signup, signIn, dltcontact, searchUser };
+module.exports = { signup, signIn, dltcontact, searchUser, updateprofile };

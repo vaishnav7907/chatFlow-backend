@@ -180,7 +180,6 @@ const dltGroup = async (req, res) => {
   }
 };
 
-
 // get all chats
 const getAllChatss = async (req, res) => {
   try {
@@ -192,8 +191,8 @@ const getAllChatss = async (req, res) => {
       .find({
         $or: [{ senderid: myId }, { recieverid: myId }],
       })
-      .populate("senderid", "Username")
-      .populate("recieverid", "Username")
+      .populate("senderid", "Username ProfileImage")
+      .populate("recieverid", "Username ProfileImage")
       .sort({ createdAt: -1 }); //newest first
 
     //object to store one chat per user
@@ -207,6 +206,9 @@ const getAllChatss = async (req, res) => {
           ? msg.recieverid
           : msg.senderid;
 
+      //skip myid
+      if (String(otherUsers._id) === String(myId)) continue;
+      
       // if this usser already added skip it
       if (personalchat[otherUsers._id]) continue;
 
@@ -215,6 +217,7 @@ const getAllChatss = async (req, res) => {
       personalchat[otherUsers._id] = {
         _id: otherUsers._id,
         Username: otherUsers.Username,
+        ProfileImage:otherUsers.ProfileImage,
         lastMessage: msg.text,
         createdAt: msg.createdAt,
       };

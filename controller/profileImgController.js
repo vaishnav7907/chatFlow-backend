@@ -1,4 +1,5 @@
-const cloudinary = require("../cloudinaryConfig/cloudinary");
+// const cloudinary = require("../cloudinaryConfig/cloudinary");
+const cloudinary= require("../cloudinaryConfig/cloudinary")
 const usermodel = require("../model/authentication");
 const streamifier = require("streamifier");
 

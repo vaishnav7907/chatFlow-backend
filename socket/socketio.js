@@ -48,6 +48,8 @@ const setupchat = (io) => {
     console.log("connected:", socket.id);
 
     socket.on("join", (userId) => {
+
+      console.log("join event",userId);
       onlineusers.set(userId, socket.id);
 
       console.log("online users", [...onlineusers.entries()]);
