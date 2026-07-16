@@ -16,6 +16,10 @@ const {
   getGroupMembers,
   dltGroup,
   getAllChatss,
+  createRequest,
+  acceptRequest,
+  incomingRequest,
+  outgoingRequests,
 } = require("../controller/messagecontroller");
 
 const settingMidleware = require("../middleware/middleware");
@@ -42,7 +46,7 @@ router.get("/getmessages/:id", settingMidleware, getMessages);
 router.post("/creategroup", creategroup);
 
 //get all groups
-router.get("/getgroup", getallgrps);
+router.get("/getgroup",settingMidleware, getallgrps);
 
 //get group messages
 router.get("/getgroupmessages/:groupid", getgroupMsgs);
@@ -75,6 +79,23 @@ router.get("/getProfileImg",settingMidleware,getProfileImage)
 //update profile
 
 router.patch("/updateProfile/:id",settingMidleware,updateprofile)
+
+
+
+//request
+
+// request create
+router.post("/createRequest",settingMidleware,createRequest)
+
+//accept request
+router.patch("/acceptRequest/:requestid",settingMidleware,acceptRequest)
+
+//incoming request
+
+router.get("/incomingRequest",settingMidleware,incomingRequest)
+
+//outgoing request
+router.get("/outgoingRequest",settingMidleware,outgoingRequests)
 
 
 

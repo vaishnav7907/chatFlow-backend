@@ -2,7 +2,7 @@ const usermodel = require("../model/authentication");
 const messagemodel = require("../model/chatmodel");
 const groupmodel = require("../model/groupschema");
 const groupChatModel = require("../model/groupChatSchema");
-
+const chatrequestModel = require("../model/chatRequest");
 const getallusers = async (req, res) => {
   try {
     console.log("req user:", req.user);
@@ -86,7 +86,8 @@ const creategroup = async (req, res) => {
 
 const getallgrps = async (req, res) => {
   try {
-    const getgrp = await groupmodel.find();
+    const myId = req.user.id;
+    const getgrp = await groupmodel.find({ members: myId });
     res.status(200).json(getgrp);
   } catch (error) {
     console.log("error in get all groups:", error);
@@ -208,7 +209,7 @@ const getAllChatss = async (req, res) => {
 
       //skip myid
       if (String(otherUsers._id) === String(myId)) continue;
-      
+
       // if this usser already added skip it
       if (personalchat[otherUsers._id]) continue;
 
@@ -217,7 +218,7 @@ const getAllChatss = async (req, res) => {
       personalchat[otherUsers._id] = {
         _id: otherUsers._id,
         Username: otherUsers.Username,
-        ProfileImage:otherUsers.ProfileImage,
+        ProfileImage: otherUsers.ProfileImage,
         lastMessage: msg.text,
         createdAt: msg.createdAt,
       };
@@ -260,6 +261,128 @@ const getAllChatss = async (req, res) => {
   }
 };
 
+// send request and accept request
+
+const createRequest = async (req, res) => {
+  try {
+    const sender = req.user.id;
+    const { reciever } = req.body;
+
+    // cant send request a sender to sender
+    if (sender === reciever) {
+      return res
+        .status(400)
+        .json({ message: "You can't send a request to yourself" });
+    }
+
+    // checking request already exist
+
+    const requestExist = await chatrequestModel.findOne({
+      $or: [
+        { sender, reciever },
+        {
+          sender: reciever,
+          reciever: sender,
+        },
+      ],
+    });
+
+    if (requestExist) {
+      return res.status(400).json({
+        message: "Chat request already exist",
+      });
+    }
+
+    const request = await chatrequestModel.create({ sender, reciever });
+
+    res.status(200).json(request);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+const acceptRequest = async (req, res) => {
+  try {
+    const { requestid } = req.params;
+    const myId = req.user.id;
+
+    // find request
+
+    const findRequest = await chatrequestModel.findById(requestid);
+
+    if (!findRequest) {
+      return res.status(404).json({
+        message: "Request not found",
+      });
+    }
+
+    //only reciever can accept
+
+    if (String(findRequest.reciever) !== String(myId)) {
+      return res.status(403).json({
+        message: "You are not allowed to accept this request",
+      });
+    }
+
+    // already accepted
+
+    if (findRequest.status === "accepted") {
+      return res.status(400).json({
+        message: "Request already accepted",
+      });
+    }
+
+    findRequest.status = "accepted";
+    await findRequest.save();
+    res.status(200).json({
+      message: "Request accepted",
+      findRequest,
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+const incomingRequest = async (req, res) => {
+  try {
+    const requests = await chatrequestModel
+      .find({ reciever: req.user.id, status: "pending" })
+      .populate("sender", "Username ProfileImage")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(requests);
+  } catch (error) {
+    console.log("incoming request error", error);
+
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+const outgoingRequests = async (req, res) => {
+  try {
+    const request = await chatrequestModel
+      .find({ sender: req.user.id, status: "pending" })
+      .populate("reciever", "Username ProfileImage")
+      .sort({ createdAt: -1 });
+    res.status(200).json(request);
+  } catch (error) {
+    console.log("incoming request error", error);
+
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getallusers,
   getMessages,
@@ -270,4 +393,8 @@ module.exports = {
   getGroupMembers,
   dltGroup,
   getAllChatss,
+  createRequest,
+  acceptRequest,
+  incomingRequest,
+  outgoingRequests
 };

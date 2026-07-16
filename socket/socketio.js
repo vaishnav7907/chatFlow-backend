@@ -42,19 +42,19 @@
 const msgmodel = require("../model/chatmodel");
 const groupmodel = require("../model/groupschema");
 const groupchatmodel = require("../model/groupChatSchema");
+const requestchatModel = require("../model/chatRequest");
 const onlineusers = new Map();
 const setupchat = (io) => {
   io.on("connection", (socket) => {
     console.log("connected:", socket.id);
 
     socket.on("join", (userId) => {
-
-      console.log("join event",userId);
+      console.log("join event", userId);
       onlineusers.set(userId, socket.id);
 
       console.log("online users", [...onlineusers.entries()]);
 
-      io.emit("onlineUsers",[...onlineusers.keys()])
+      io.emit("onlineUsers", [...onlineusers.keys()]);
     });
 
     socket.on("sendmessage", async (data) => {
@@ -63,6 +63,21 @@ const setupchat = (io) => {
       if (!recieverid || !text?.trim()) return;
 
       try {
+        //checking both users are accpted request
+        const acceptedRequested = await requestchatModel.findOne({
+          status: "accepted",
+          $or: [
+            { sender: senderid, reciever: recieverid },
+            { sender: recieverid, reciever: senderid },
+          ],
+        });
+
+        if (!acceptedRequested) {
+          return socket.emit("messageError", {
+            message: "Chat request not accepted.",
+          });
+        }
+
         const savemessage = await msgmodel.create({
           senderid,
           recieverid,
@@ -97,7 +112,7 @@ const setupchat = (io) => {
     socket.on("sendGroupMsg", async (sendData) => {
       const { groupid, senderid, text } = sendData;
 
-      if (!groupid || !senderid|| !text?.trim()) return;
+      if (!groupid || !senderid || !text?.trim()) return;
 
       try {
         const groupMember = await groupmodel.findOne({
@@ -121,7 +136,7 @@ const setupchat = (io) => {
           .findById(groupmessage._id)
           .populate("senderid", "Username");
 
-        //send to all group members 
+        //send to all group members
         io.to(groupid).emit("recieveGroupMsg", populatemsg);
       } catch (error) {
         console.log("group message error:", error);
@@ -139,7 +154,7 @@ const setupchat = (io) => {
         }
       }
 
-      io.emit("onlineUsers",[...onlineusers.keys()])
+      io.emit("onlineUsers", [...onlineusers.keys()]);
       console.log("Disconnected:", socket.id);
       console.log("online users", [...onlineusers.entries()]);
     });
