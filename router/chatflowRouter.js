@@ -20,6 +20,8 @@ const {
   acceptRequest,
   incomingRequest,
   outgoingRequests,
+  rejectRequest,
+  deletemsgConnection,
 } = require("../controller/messagecontroller");
 
 const settingMidleware = require("../middleware/middleware");
@@ -97,6 +99,10 @@ router.get("/incomingRequest",settingMidleware,incomingRequest)
 //outgoing request
 router.get("/outgoingRequest",settingMidleware,outgoingRequests)
 
+//reject request
+router.patch("/rejectRequest/:requestid",settingMidleware,rejectRequest)
 
+// delete msg connection
+router.delete("/deleteConnection/:userid",settingMidleware,deletemsgConnection)
 
 module.exports = router;

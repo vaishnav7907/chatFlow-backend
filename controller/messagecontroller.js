@@ -288,14 +288,41 @@ const createRequest = async (req, res) => {
     });
 
     if (requestExist) {
-      return res.status(400).json({
-        message: "Chat request already exist",
-      });
+      if (requestExist.status === "pending") {
+        return res.status(400).json({
+          message: "Chat request already exists",
+        });
+      }
+
+      if (requestExist.status === "accepted") {
+        return res.status(400).json({
+          message: "You are already connected",
+        });
+      }
+
+      if (requestExist.status === "rejected") {
+        requestExist.sender = sender;
+        requestExist.reciever = reciever;
+        requestExist.status = "pending";
+
+        await requestExist.save();
+
+        return res.status(200).json({
+          message: "Request sent again",
+          data: requestExist,
+        });
+      }
     }
 
-    const request = await chatrequestModel.create({ sender, reciever });
+    const request = await chatrequestModel.create({
+      sender,
+      reciever,
+    });
 
-    res.status(200).json(request);
+    return res.status(201).json({
+      message: "Request sent successfully",
+      data: request,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -383,6 +410,62 @@ const outgoingRequests = async (req, res) => {
   }
 };
 
+const rejectRequest = async (req, res) => {
+  try {
+    const { requestid } = req.params;
+
+    const findrequest = await chatrequestModel.findOne({
+      _id: requestid,
+      reciever: req.user.id,
+      status: { $in: ["pending", "accepted"] },
+    });
+
+    if (!findrequest) {
+      return res.status(400).json({ message: "request not found" });
+    }
+
+    findrequest.status = "rejected";
+    await findrequest.save();
+
+    res
+      .status(200)
+      .json({ message: "request rejected successfully ", data: findrequest });
+  } catch (error) {
+    console.log(" error in reject request", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const deletemsgConnection= async(req,res)=>{
+  try {
+     const myId=req.user.id
+   const  {userid}=req.params
+
+   const findConnection= await chatrequestModel.findOneAndDelete(
+    { $or: [
+        { sender: myId, reciever: userid, status: "accepted" },
+        { sender: userid, reciever: myId, status: "accepted" },
+      ],}
+   )
+
+   if(!findConnection){
+     return res.status(404).json({
+        message: "Connection not found",
+      });
+   }
+
+    res.status(200).json({
+      message: "Connection deleted successfully",
+    });
+  } catch (error) {
+    console.log("user msg connection error",error);
+    
+     res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
 module.exports = {
   getallusers,
   getMessages,
@@ -396,5 +479,7 @@ module.exports = {
   createRequest,
   acceptRequest,
   incomingRequest,
-  outgoingRequests
+  outgoingRequests,
+  rejectRequest,
+  deletemsgConnection
 };
