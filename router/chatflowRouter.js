@@ -23,6 +23,7 @@ const {
   rejectRequest,
   deletemsgConnection,
   searchContacts,
+  canceloutgoingRequest,
 } = require("../controller/messagecontroller");
 
 const settingMidleware = require("../middleware/middleware");
@@ -107,6 +108,9 @@ router.get("/outgoingRequest",settingMidleware,outgoingRequests)
 
 //reject request
 router.patch("/rejectRequest/:requestid",settingMidleware,rejectRequest)
+
+//cancel outgoing requests
+router.delete("/cancelOutgoingReq/:requestid",settingMidleware,canceloutgoingRequest)
 
 // delete msg connection
 router.delete("/deleteConnection/:userid",settingMidleware,deletemsgConnection)

@@ -265,12 +265,11 @@ const searchContacts = async (req, res) => {
   try {
     const { search } = req.query;
     const allContacts = await usermodel.find({
-      _id: { $ne: req.user.id },   // $ne it means not equal to.  req.user.id or me. so here find all ids not equal to req.user.id  . so when we search with username our username will remain exclude 
-      Username: { $regex: search || "", $options: "i" },  //$regex used for search. $options: when we search a name with capital letter M that time only get result how much username have with capiatl letter M. so for  overcome that issue  we used $options. here when we search a username using with any small or capital letter , gets all posible results 
+      _id: { $ne: req.user.id }, // $ne it means not equal to.  req.user.id or me. so here find all ids not equal to req.user.id  . so when we search with username our username will remain exclude
+      Username: { $regex: search || "", $options: "i" }, //$regex used for search. $options: when we search a name with capital letter M that time only get result how much username have with capiatl letter M. so for  overcome that issue  we used $options. here when we search a username using with any small or capital letter , gets all posible results
     });
 
-
-    res.status(200).json(allContacts)
+    res.status(200).json(allContacts);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -451,6 +450,33 @@ const rejectRequest = async (req, res) => {
   }
 };
 
+const canceloutgoingRequest = async (req, res) => {
+  try {
+    const { requestid } = req.params;
+    const findOutgoingRequests = await chatrequestModel.findOne({
+      _id: requestid,
+      sender: req.user.id,
+      status: "pending",
+    });
+
+    if (!findOutgoingRequests) {
+      return res.status(404).json({
+        message: "Request not found",
+      });
+    }
+
+    await findOutgoingRequests.deleteOne();
+    res.status(200).json({
+      message: "Request cancelled successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
 const deletemsgConnection = async (req, res) => {
   try {
     const myId = req.user.id;
@@ -497,5 +523,6 @@ module.exports = {
   outgoingRequests,
   rejectRequest,
   deletemsgConnection,
-  searchContacts
+  searchContacts,
+  canceloutgoingRequest
 };
