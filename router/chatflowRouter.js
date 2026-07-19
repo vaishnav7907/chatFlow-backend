@@ -22,6 +22,7 @@ const {
   outgoingRequests,
   rejectRequest,
   deletemsgConnection,
+  searchContacts,
 } = require("../controller/messagecontroller");
 
 const settingMidleware = require("../middleware/middleware");
@@ -58,6 +59,11 @@ router.post("/addMembersToGroup", addMembersToGroup);
 
 //search user
 router.get("/searchUser", searchUser);
+
+
+//searchcontacts
+
+router.get("/searchContacts",settingMidleware,searchContacts)
 
 //get group members
 router.get("/getGroupMembers", getGroupMembers);
@@ -104,5 +110,7 @@ router.patch("/rejectRequest/:requestid",settingMidleware,rejectRequest)
 
 // delete msg connection
 router.delete("/deleteConnection/:userid",settingMidleware,deletemsgConnection)
+
+
 
 module.exports = router;

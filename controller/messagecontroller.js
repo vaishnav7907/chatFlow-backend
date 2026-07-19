@@ -261,6 +261,21 @@ const getAllChatss = async (req, res) => {
   }
 };
 
+const searchContacts = async (req, res) => {
+  try {
+    const { search } = req.query;
+    const allContacts = await usermodel.find({
+      _id: { $ne: req.user.id },   // $ne it means not equal to.  req.user.id or me. so here find all ids not equal to req.user.id  . so when we search with username our username will remain exclude 
+      Username: { $regex: search || "", $options: "i" },  //$regex used for search. $options: when we search a name with capital letter M that time only get result how much username have with capiatl letter M. so for  overcome that issue  we used $options. here when we search a username using with any small or capital letter , gets all posible results 
+    });
+
+
+    res.status(200).json(allContacts)
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // send request and accept request
 
 const createRequest = async (req, res) => {
@@ -436,35 +451,35 @@ const rejectRequest = async (req, res) => {
   }
 };
 
-const deletemsgConnection= async(req,res)=>{
+const deletemsgConnection = async (req, res) => {
   try {
-     const myId=req.user.id
-   const  {userid}=req.params
+    const myId = req.user.id;
+    const { userid } = req.params;
 
-   const findConnection= await chatrequestModel.findOneAndDelete(
-    { $or: [
+    const findConnection = await chatrequestModel.findOneAndDelete({
+      $or: [
         { sender: myId, reciever: userid, status: "accepted" },
         { sender: userid, reciever: myId, status: "accepted" },
-      ],}
-   )
+      ],
+    });
 
-   if(!findConnection){
-     return res.status(404).json({
+    if (!findConnection) {
+      return res.status(404).json({
         message: "Connection not found",
       });
-   }
+    }
 
     res.status(200).json({
       message: "Connection deleted successfully",
     });
   } catch (error) {
-    console.log("user msg connection error",error);
-    
-     res.status(500).json({
+    console.log("user msg connection error", error);
+
+    res.status(500).json({
       message: error.message,
     });
   }
-}
+};
 
 module.exports = {
   getallusers,
@@ -481,5 +496,6 @@ module.exports = {
   incomingRequest,
   outgoingRequests,
   rejectRequest,
-  deletemsgConnection
+  deletemsgConnection,
+  searchContacts
 };
