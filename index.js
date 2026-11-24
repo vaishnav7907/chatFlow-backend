@@ -15,6 +15,7 @@ const setupchat = require("./socket/socketio")
 
 app.use(
   cors({
+    
     origin:process.env.CLIENT_URL,
     
   })

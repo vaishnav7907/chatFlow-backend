@@ -22,9 +22,11 @@ const uploadProfileImage = async (req, res) => {
       streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
     });
 
+
     const user = await usermodel.findById(req.user.id);
     user.ProfileImage = uploadImageResult.secure_url;
-    await user.save();
+    await user.save();   
+
 
     res.status(200).json({
       success: true,

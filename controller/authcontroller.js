@@ -94,8 +94,7 @@ const updateprofile = async (req, res) => {
       return res.json({ message: "user id didnt exist" });
     }
 
-
-    // checking email is exist 
+    // checking email is exist
     if (Email) {
       const emailexist = await usermodel.findOne({
         Email,
@@ -109,15 +108,12 @@ const updateprofile = async (req, res) => {
       }
     }
 
-
     // checking username is exist
 
-
-    
     if (Username) {
       const usernameExist = await usermodel.findOne({
         Username,
-        _id: { $ne: userid },   //  $ne is a mongodb query. here $ne used to comparison   it checks  userid and username in one oject in mongodb. if find all includes in one object responce become username already exist
+        _id: { $ne: userid }, //  $ne is a mongodb query. here $ne used to comparison   it checks  userid and username in one oject in mongodb. if find all includes in one object responce become username already exist
       });
 
       if (usernameExist) {
@@ -128,16 +124,23 @@ const updateprofile = async (req, res) => {
     }
 
     //update object . it creates for when we do like await usermodel.findByIdAndUpdate(userid, { Email, Username,},{new:true}); when i update one otherwill be become undefined, exakple i update email , username become undefined. when we use this object when email update otherone cannot be undefined .
-  const updateData={}
-  
-  if(Email)updateData.Email=Email
-  if(Username)updateData.Username=Username
+    const updateData = {};
 
-  //update user
+    if (Email) updateData.Email = Email;
+    if (Username) updateData.Username = Username;
 
-  const updateUserInfo= await usermodel.findByIdAndUpdate(userid,updateData,{new:true})
+    //update user
 
-    res.json({ message: " profile updated successfully ", data: updateUserInfo });
+    const updateUserInfo = await usermodel.findByIdAndUpdate(
+      userid,
+      updateData,
+      { new: true },
+    );
+
+    res.json({
+      message: " profile updated successfully ",
+      data: updateUserInfo,
+    });
   } catch (error) {
     console.log("error in update profile", error);
     res.status(500).json({
